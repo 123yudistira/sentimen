@@ -8,7 +8,11 @@ from imblearn.over_sampling import SMOTE
 
 # Navbar
 st.sidebar.title("Menu")
-navbar = st.sidebar.title("Navigation", ["Home", "Preprocessing", "SMOTE", "Classification", "Prediction"])
+st.sidebar.write("- Home")
+st.sidebar.write("- Preprocessing")
+st.sidebar.write("- SMOTE")
+st.sidebar.write("- Classification")
+st.sidebar.write("- Prediction")
 
 # Home
 if navbar == "Home":
