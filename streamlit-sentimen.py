@@ -8,6 +8,7 @@ from imblearn.over_sampling import SMOTE
 
 # Navbar
 st.sidebar.title("Menu")
+st.sidebar.info("Navigation")
 st.sidebar.write("- Home")
 st.sidebar.write("- Preprocessing")
 st.sidebar.write("- SMOTE")
