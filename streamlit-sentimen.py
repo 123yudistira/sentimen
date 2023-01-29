@@ -16,7 +16,7 @@ if navbar == "Home":
     st.markdown("Website ini merupakan implementasi dari penelitian tugas akhir berjudul “Penerapan Metode Support Vector Machine dan SMOTE Pada Analisis Sentimen Aplikasi Dompet Digital Berdasarkan Ulasan Pengguna”. Penelitian ini menggunakan sebanyak 2000 data yang diambil dari lima aplikasi dompet digital yaitu Gopay, Dana, Ovo, Shopeepay, dan LinkAja. Data telah diberikan label yaitu positif dan negatif dengan pelabelan manual yang telah tervalidasi oleh pakar bahasa. Penelitian ini menggunakan Support Vector Machine (SVM) sebagai metode klasifikasi dan menerapkan SMOTE sebagai metode untuk mengatasi imbalance data pada perbandingan jumlah ulasan. Website ini bertujuan untuk melakukan klasifikasi mengenai ulasan terhadap ulasan dompet digital. Dompet digital tersebut cukup mewakili dan dimaksudkan agar nantinya bisa menjadi bahan evaluasi aplikasi dompet digital secara umum.")
 
 # Preprocessing
-elif navbar == "Preprocessing":
+if navbar == "Preprocessing":
     st.title("Preprocessing")
     uploaded_file = st.file_uploader("Drag and drop file CSV", type=["csv"])
     if uploaded_file is not None:
@@ -39,7 +39,7 @@ elif navbar == "Preprocessing":
             data.to_csv("hasil_preprocessing.csv")
 
 # SMOTE
-elif navbar == "SMOTE":
+if navbar == "SMOTE":
     st.title("SMOTE")
     uploaded_file = st.file_uploader("Drag and drop file CSV hasil preprocessing", type=["csv"])
     if uploaded_file is not None:
@@ -53,7 +53,7 @@ elif navbar == "SMOTE":
             data_resampled.to_csv("hasil_smote.csv")
 
 # Classification
-elif navbar == "Classification":
+if navbar == "Classification":
     st.title("Classification")
     st.markdown("Input model file (pickle format)")
 
@@ -72,7 +72,7 @@ elif navbar == "Classification":
             st.write("Accuracy: ", model.score(X_test_smote, y_test_smote))
 
 # Prediction
-elif navbar == "Prediction":
+if navbar == "Prediction":
     st.title("Prediction")
     st.markdown("Input text to predict sentiment")
 
