@@ -8,7 +8,6 @@ from imblearn.over_sampling import SMOTE
 
 # Navbar
 st.sidebar.title("Menu")
-st.sidebar.info("Navigation")
 st.sidebar.write("- Home")
 st.sidebar.write("- Preprocessing")
 st.sidebar.write("- SMOTE")
@@ -21,7 +20,7 @@ if navbar == "Home":
     st.markdown("Website ini merupakan implementasi dari penelitian tugas akhir berjudul “Penerapan Metode Support Vector Machine dan SMOTE Pada Analisis Sentimen Aplikasi Dompet Digital Berdasarkan Ulasan Pengguna”. Penelitian ini menggunakan sebanyak 2000 data yang diambil dari lima aplikasi dompet digital yaitu Gopay, Dana, Ovo, Shopeepay, dan LinkAja. Data telah diberikan label yaitu positif dan negatif dengan pelabelan manual yang telah tervalidasi oleh pakar bahasa. Penelitian ini menggunakan Support Vector Machine (SVM) sebagai metode klasifikasi dan menerapkan SMOTE sebagai metode untuk mengatasi imbalance data pada perbandingan jumlah ulasan. Website ini bertujuan untuk melakukan klasifikasi mengenai ulasan terhadap ulasan dompet digital. Dompet digital tersebut cukup mewakili dan dimaksudkan agar nantinya bisa menjadi bahan evaluasi aplikasi dompet digital secara umum.")
 
 # Preprocessing
-if navbar == "Preprocessing":
+if st.button("Preprocessing"):
     st.title("Preprocessing")
     uploaded_file = st.file_uploader("Drag and drop file CSV", type=["csv"])
     if uploaded_file is not None:
