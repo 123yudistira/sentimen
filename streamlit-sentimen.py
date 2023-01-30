@@ -1,110 +1,86 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
-import pickle
+import nltk
 from nltk.corpus import stopwords
-from nltk.stem import SnowballStemmer
-import string
+from nltk.tokenize import word_tokenize
+from sklearn.preprocessing import MinMaxScaler
 from imblearn.over_sampling import SMOTE
-from sklearn.model_selection import train_test_split
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.naive_bayes import MultinomialNB
 
-# Preprocessing function
-def preprocess_text(text):
-    # Cleansing
-    text = text.lower()
-    text = text.translate(str.maketrans('', '', string.punctuation))
-    # Case folding
-    text = text.lower()
-    # Tokenization
-    tokens = text.split()
-    # Slangword
-    # TODO: Add slangword handling code here
-    # Stopword removal
-    stop_words = set(stopwords.words("english"))
-    tokens = [token for token in tokens if not token in stop_words]
-    # Stemming
-    stemmer = SnowballStemmer("english")
-    tokens = [stemmer.stem(token) for token in tokens]
-    return " ".join(tokens)
+# Navbar
+st.sidebar.title("Navbar")
+navbar = st.sidebar.selectbox("Pilih menu", ["Home", "Preprocessing", "SMOTE", "Classification", "Prediction"])
 
-# Streamlit app
-def main():
-    st.title("Preprocessing & SMOTE & Classifier Text with Streamlit")
-    st.set_page_config(page_title="Preprocessing & SMOTE & Classifier Text", page_icon=":guardsman:", layout="wide")
+# Home
+if navbar == "Home":
+    st.title("Home")
+    st.markdown("Penjelasan/ Deskripsi singkat website")
 
-    # Preprocessing section
-    st.header("Preprocessing")
-    uploaded_file = st.file_uploader("Upload your CSV file for preprocessing", type=["csv"])
+# Preprocessing
+elif navbar == "Preprocessing":
+    st.title("Preprocessing")
+    uploaded_file = st.file_uploader("Drag and drop file CSV", type=["csv"])
     if uploaded_file is not None:
-        df = pd.read_csv(uploaded_file)
-        # Preprocessing
-        df["text"] = df["text"].apply(preprocess_text)
-        # Show result
-        st.write("Result of preprocessing:")
-        st.write(df)
-        # Save result
-        if st.button("Download result"):
-            st.write("Downloading preprocessed result...")
-            df.to_csv("preprocessed_text.csv", index=False)
-            st.write("Downloaded as preprocessed_text.csv")
+        data = pd.read_csv(uploaded_file)
+        # Cleansing
+        data = data.dropna()
+        # Case Folding
+        data['text'] = data['text'].apply(lambda x: x.lower())
+        # Tokenization
+        data['text'] = data['text'].apply(word_tokenize)
+        # Slangword
+        # ...
+        # Stopword Removal
+        stopwords_list = set(stopwords.words("english"))
+        data['text'] = data['text'].apply(lambda x: [word for word in x if word not in stopwords_list])
+        # Stemming
+        # ...
+        st.dataframe(data)
+        if st.button("Save/Download"):
+            data.to_csv("hasil_preprocessing.csv")
 
-    # SMOTE section
-    st.header("SMOTE")
-    uploaded_file = st.file_uploader("Upload your CSV file for SMOTE", type=["csv"])
+# SMOTE
+elif navbar == "SMOTE":
+    st.title("SMOTE")
+    uploaded_file = st.file_uploader("Drag and drop file CSV hasil preprocessing", type=["csv"])
     if uploaded_file is not None:
-        df = pd.read_csv(uploaded_file)
+        data = pd.read_csv(uploaded_file)
         # SMOTE
-        smote = SMOTE()
-        x, y = smote.fit_resample(df.drop(columns="label"), df["label"])
-        df_smote = pd.concat([pd.DataFrame(x), pd.DataFrame(y)], axis=1)
-        df_smote.columns = df.columns
-        # Show result
-        st.write("Result of SMOTE:")
-        st.write(df_smote)
-        # Save result
-        if st.button("Download result"):
-            st.write("Downloading SMOTE result...")
-            df_smote.to_csv("smoted_text.csv", index=False)
-            st.write("Downloaded as smoted_text.csv")
+        sm = SMOTE()
+        data_resampled, y_resampled = sm.fit_resample(data, data['label'])
+        data_resampled = pd.DataFrame(data_resampled, columns=data.columns)
+        st.dataframe(data_resampled)
+        if st.button("Save/Download"):
+            data_resampled.to_csv("hasil_smote.csv")
 
-    # Classification section
-    st.header("Classification")
+# Classification
+elif navbar == "Classification":
+    st.title("Classification")
+    st.markdown("Input model file (pickle format)")
 
-    # Load pickle file
-    uploaded_pickle = st.file_uploader("Upload your pickle file for classification", type=["pkl"])
-    if uploaded_pickle is not None:
-        clf = joblib.load(uploaded_pickle)
+    model_file = st.file_uploader("Upload model file", type=["pickle"])
 
-        # Test options
-        st.header("Test options")
-        test_options = st.selectbox("Select test option", ["SVM", "SVM + SMOTE"])
+    if model_file is not None:
+        model = pickle.load(model_file)
+        st.success("Model loaded")
 
-        # Load test data
-        uploaded_test = st.file_uploader("Upload your test data", type=["csv"])
-        if uploaded_test is not None:
-            df_test = pd.read_csv(uploaded_test)
-            x_test = df_test["text"]
-            y_test = df_test["label"]
+        st.markdown("Choose classification method")
+        method = st.selectbox("Method", ["SVM", "SVM + SMOTE"])
 
-            if test_options == "SVM":
-                # SVM without SMOTE
-                tfidf = TfidfVectorizer()
-                x_test = tfidf.fit_transform(x_test)
-                accuracy = clf.score(x_test, y_test)
-                st.write("Accuracy of SVM without SMOTE:")
-                st.write(accuracy)
+        if method == "SVM":
+            st.write("Accuracy: ", model.score(X_test, y_test))
+        elif method == "SVM + SMOTE":
+            st.write("Accuracy: ", model.score(X_test_smote, y_test_smote))
 
-            elif test_options == "SVM + SMOTE":
-                # SVM with SMOTE
-                smote = SMOTE()
-                x_resampled, y_resampled = smote.fit_resample(x_test, y_test)
-                tfidf = TfidfVectorizer()
-                x_resampled = tfidf.fit_transform(x_resampled)
-                accuracy = clf.score(x_resampled, y_resampled)
-                st.write("Accuracy of SVM with SMOTE:")
-                st.write(accuracy)
-                
-if __name__ == "__main__":
-    main()
+# Prediction
+elif navbar == "Prediction":
+    st.title("Prediction")
+    st.markdown("Input text to predict sentiment")
+
+    text = st.text_input("Text")
+
+    if text:
+        sentiment = model.predict([text])
+        if sentiment == 1:
+            st.success("Positive")
+        else:
+            st.error("Negative")
