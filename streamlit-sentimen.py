@@ -16,27 +16,38 @@ if navbar == "Home":
     st.markdown("Penjelasan/ Deskripsi singkat website")
 
 # Preprocessing
-elif navbar == "Preprocessing":
-    st.title("Preprocessing")
-    uploaded_file = st.file_uploader("Drag and drop file CSV", type=["csv"])
+nltk.download('punkt')
+nltk.download('stopwords')
+
+stop_words = set(stopwords.words("english"))
+stemmer = PorterStemmer()
+
+def preprocess(text):
+    text = text.lower() # case folding
+    tokens = word_tokenize(text) # tokenization
+    # slangword and stopword removal
+    tokens = [token for token in tokens if token not in stop_words and token.isalpha()]
+    # stemming
+    tokens = [stemmer.stem(token) for token in tokens]
+    return tokens
+
+def main():
+    st.set_page_config(page_title="Text Preprocessing", page_icon=":book:", layout="wide")
+    st.title("Text Preprocessing")
+    uploaded_file = st.file_uploader("Upload a CSV file", type=["csv"])
     if uploaded_file is not None:
-        data = pd.read_csv(uploaded_file)
-        # Cleansing
-        data = data.dropna()
-        # Case Folding
-        data['text'] = data['text'].apply(lambda x: x.lower())
-        # Tokenization
-        data['text'] = data['text'].apply(word_tokenize)
-        # Slangword
-        # ...
-        # Stopword Removal
-        stopwords_list = set(stopwords.words("english"))
-        data['text'] = data['text'].apply(lambda x: [word for word in x if word not in stopwords_list])
-        # Stemming
-        # ...
-        st.dataframe(data)
-        if st.button("Save/Download"):
-            data.to_csv("hasil_preprocessing.csv")
+        df = pd.read_csv(uploaded_file)
+        st.write("Original Data:")
+        st.write(df)
+        df['tokens'] = df['text'].apply(preprocess)
+        st.write("Preprocessed Data:")
+        st.write(df)
+        if st.button('Download Preprocessed Data'):
+            st.write("Preprocessed data downloaded!")
+            df.to_csv('preprocessed_data.csv', index=False)
+
+if __name__ == '__main__':
+    main()
 
 # SMOTE
 elif navbar == "SMOTE":
