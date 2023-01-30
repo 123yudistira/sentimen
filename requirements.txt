@@ -6,3 +6,4 @@ streamlit==1.16.0
 yfinance==0.2.3
 nltk==3.7
 imbalanced_learn==0.10.1
+joblib==1.2.0
