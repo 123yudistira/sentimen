@@ -1,106 +1,86 @@
 import streamlit as st
 import pandas as pd
 import nltk
-import joblib
-from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
-from nltk.stem import PorterStemmer
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
-from sklearn.svm import SVC
-from sklearn.datasets import make_classification
+from nltk.tokenize import word_tokenize
+from sklearn.preprocessing import MinMaxScaler
 from imblearn.over_sampling import SMOTE
 
-st.set_page_config(page_title="Sentiment Analysis", page_icon=":guardsman:", layout="wide")
+# Navbar
+st.sidebar.title("Navbar")
+navbar = st.sidebar.selectbox("Pilih menu", ["Home", "Preprocessing", "SMOTE", "Classification", "Prediction"])
 
-def preprocessing():
-    st.set_page_config(page_title="Preprocessing", page_icon=":guardsman:", layout="wide")
+# Home
+if navbar == "Home":
+    st.title("Home")
+    st.markdown("Penjelasan/ Deskripsi singkat website")
+
+# Preprocessing
+elif navbar == "Preprocessing":
     st.title("Preprocessing")
-    st.markdown("Input CSV file for preprocessing")
-    uploaded_file = st.file_uploader("Choose a CSV file", type=["csv"])
+    uploaded_file = st.file_uploader("Drag and drop file CSV", type=["csv"])
     if uploaded_file is not None:
         data = pd.read_csv(uploaded_file)
-        st.write(data)
-        st.markdown("Cleaning")
-        data['text'] = data['text'].str.replace('[^\w\s]','')
-        st.write(data)
-        st.markdown("Case Folding")
-        data['text'] = data['text'].apply(lambda x: " ".join(x.lower() for x in x.split()))
-        st.write(data)
-        st.markdown("Tokenization")
-        data['text'] = data['text'].apply(lambda x: word_tokenize(x))
-        st.write(data)
-        st.markdown("Slangword & Stopword Removal")
-        stop = stopwords.words('english')
-        data['text'] = data['text'].apply(lambda x: [item for item in x if item not in stop])
-        st.write(data)
-        st.markdown("Stemming")
-        stemmer = PorterStemmer()
-        data['text'] = data['text'].apply(lambda x: [stemmer.stem(y) for y in x])
-        st.write(data)
-        st.markdown("Save/Download the result as CSV")
-        if st.button('Save'):
-            data.to_csv('preprocessed_data.csv')
-            st.success('File saved successfully')
+        # Cleansing
+        data = data.dropna()
+        # Case Folding
+        data['text'] = data['text'].apply(lambda x: x.lower())
+        # Tokenization
+        data['text'] = data['text'].apply(word_tokenize)
+        # Slangword
+        # ...
+        # Stopword Removal
+        stopwords_list = set(stopwords.words("english"))
+        data['text'] = data['text'].apply(lambda x: [word for word in x if word not in stopwords_list])
+        # Stemming
+        # ...
+        st.dataframe(data)
+        if st.button("Save/Download"):
+            data.to_csv("hasil_preprocessing.csv")
 
-def smote_page():
-    st.set_page_config(page_title="SMOTE", page_icon=":guardsman:", layout="wide")
-
+# SMOTE
+elif navbar == "SMOTE":
     st.title("SMOTE")
-
-    uploaded_file = st.file_uploader("Upload data CSV hasil preprocessing", type=["csv"])
+    uploaded_file = st.file_uploader("Drag and drop file CSV hasil preprocessing", type=["csv"])
     if uploaded_file is not None:
         data = pd.read_csv(uploaded_file)
-        X = data.drop('target', axis=1)
-        y = data['target']
+        # SMOTE
+        sm = SMOTE()
+        data_resampled, y_resampled = sm.fit_resample(data, data['label'])
+        data_resampled = pd.DataFrame(data_resampled, columns=data.columns)
+        st.dataframe(data_resampled)
+        if st.button("Save/Download"):
+            data_resampled.to_csv("hasil_smote.csv")
 
-        smote = SMOTE()
-        X_smote, y_smote = smote.fit_resample(X, y)
-
-        st.write("Data hasil SMOTE:")
-        st.write(pd.concat([pd.DataFrame(X_smote), pd.DataFrame(y_smote)], axis=1))
-
-        download = st.button("Download data hasil SMOTE")
-        if download:
-            csv = pd.concat([pd.DataFrame(X_smote), pd.DataFrame(y_smote)], axis=1)
-            csv.to_csv('smote_data.csv', index=False)
-            st.success("Data hasil SMOTE telah diunduh!")
-
-def classification():
-    st.set_page_config(page_title="Classification", page_icon=":guardsman:", layout="wide")
-
+# Classification
+elif navbar == "Classification":
     st.title("Classification")
-    st.subheader("Upload model pickle file")
+    st.markdown("Input model file (pickle format)")
 
-    uploaded_file = st.file_uploader("Choose a pickle file", type=["pkl"])
+    model_file = st.file_uploader("Upload model file", type=["pickle"])
 
-    if uploaded_file is not None:
-        model = joblib.load(uploaded_file)
+    if model_file is not None:
+        model = pickle.load(model_file)
+        st.success("Model loaded")
 
-        st.subheader("Accuracy")
-        st.write(f"Accuracy: {model.score()}")
+        st.markdown("Choose classification method")
+        method = st.selectbox("Method", ["SVM", "SVM + SMOTE"])
 
-        st.subheader("Scenario Testing")
+        if method == "SVM":
+            st.write("Accuracy: ", model.score(X_test, y_test))
+        elif method == "SVM + SMOTE":
+            st.write("Accuracy: ", model.score(X_test_smote, y_test_smote))
 
-        st.write("SVM")
-        st.write("SVM + SMOTE")
-
-def prediction():
-    st.set_page_config(page_title="Prediction", page_icon=":guardsman:", layout="wide")
-
+# Prediction
+elif navbar == "Prediction":
     st.title("Prediction")
-    st.subheader("Upload model pickle file")
+    st.markdown("Input text to predict sentiment")
 
-    uploaded_file = st.file_uploader("Choose a pickle file", type=["pkl"])
+    text = st.text_input("Text")
 
-    if uploaded_file is not None:
-        model = joblib.load(uploaded_file)
-
-        st.subheader("Input test sentence")
-        test_sentence = st.text_input("Sentence")
-
-        if test_sentence:
-            result = model.predict(test_sentence)
-            st.write("Result: " + result)
-
+    if text:
+        sentiment = model.predict([text])
+        if sentiment == 1:
+            st.success("Positive")
+        else:
+            st.error("Negative")
