@@ -3,6 +3,7 @@ import pandas as pd
 import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
+from nltk.stem import PorterStemmer
 from sklearn.preprocessing import MinMaxScaler
 from imblearn.over_sampling import SMOTE
 
