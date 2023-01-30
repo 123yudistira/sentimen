@@ -105,3 +105,6 @@ def main():
                 accuracy = clf.score(x_resampled, y_resampled)
                 st.write("Accuracy of SVM with SMOTE:")
                 st.write(accuracy)
+                
+if __name__ == "__main__":
+    main()
