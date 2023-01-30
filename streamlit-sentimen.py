@@ -20,7 +20,7 @@ elif navbar == "Preprocessing":
     st.title("Preprocessing")
     uploaded_file = st.file_uploader("Drag and drop file CSV", type=["csv"])
     if uploaded_file is not None:
-        data = pd.data_ulasan_rev1_csv(uploaded_file)
+        data = pd.read_csv(uploaded_file)
         # Cleansing
         data = data.dropna()
         # Case Folding
