@@ -105,27 +105,3 @@ def main():
                 accuracy = clf.score(x_resampled, y_resampled)
                 st.write("Accuracy of SVM with SMOTE:")
                 st.write(accuracy)
-
-
-st.write("# Prediction")
-
-model = None
-
-def load_model():
-    global model
-    model_file = st.file_uploader("Upload model file (pickle format)", type="pkl")
-    if model_file is not None:
-        model = pickle.load(model_file)
-        st.success("Model has been loaded.")
-
-load_model()
-
-if model:
-    test_sentence = st.text_input("Enter a test sentence")
-    if test_sentence:
-        sentiment = model.predict([test_sentence])[0]
-        if sentiment == 1:
-            sentiment = "positive"
-        else:
-            sentiment = "negative"
-        st.write("The sentiment of the test sentence is:", sentiment)
